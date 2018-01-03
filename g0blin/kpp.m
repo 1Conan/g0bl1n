@@ -15,7 +15,7 @@
 #import "pte_stuff.h"
 #include "patchfinder64.h"
     
-    
+//ipon 2g b0trum xplit hir
 kern_return_t do_kpp(int nukesb, int uref, uint64_t kernbase, uint64_t slide, task_t tfp0, uint64_t credpatch) {
     kern_return_t ret;
         
