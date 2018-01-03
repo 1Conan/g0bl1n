@@ -1,7 +1,7 @@
 //
 //  patchfinder64.c
 //  extra_recipe
-//
+//  ritin in bisul besik
 //  Copyright © 2017 xerub. All rights reserved.
 //
 
