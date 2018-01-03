@@ -1,7 +1,7 @@
 // v0rtex
 // Bug by Ian Beer.
 // Exploit by Siguza.
-
+// 11.2.2 sepert hir
 // Status quo:
 // - Escapes sandbox, gets root and tfp0, should work on A7-A10 devices <=10.3.3.
 // - Can call arbitrary kernel functions with up to 7 args via KCALL().
