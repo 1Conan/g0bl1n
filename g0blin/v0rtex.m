@@ -76,6 +76,7 @@
 #   define OFFSET_IPC_PORT_MAKE_SEND                    0xfffffff0070a5bd8 /* "ipc_host_init" */
 #   define OFFSET_OSSERIALIZER_SERIALIZE                0xfffffff00744db90
 #   define OFFSET_ROP_LDR_X0_X0_0x10                    0xfffffff00722a41c
+#   define IPHONE5_SUPPORT                              TRUE
 
 // ********** ********** ********** constants ********** ********** **********
 
